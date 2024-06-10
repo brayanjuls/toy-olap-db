@@ -10,7 +10,7 @@ fn main() {
         match rl.readline("> ") {
             Ok(line) => {
                 rl.add_history_entry(&line).unwrap();
-                let result = db.run(&line);
+                let result = db.run_d(&line);
                 match result {
                     Ok(ret) => print!("{:#?}", ret),
                     Err(err) => println!("error: {:#?}", err),

@@ -8,7 +8,7 @@ impl Database {
     pub fn new() -> Self {
         Database{}
     }
-    pub fn run(&self,sql:&str) -> Result<Vec<String>,Error>{
+    pub fn run_d(&self,sql:&str) -> Result<Vec<String>,Error>{
         let stmts = parser::parse(sql)?;
         let mut outputs = Vec::<String>::new();
         for stmt in stmts{

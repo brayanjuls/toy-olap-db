@@ -1,5 +1,5 @@
 use sqlparser::ast::{Expr, SelectItem, SetExpr, Statement};
-use sqlparser::ast::Value::SingleQuotedString;
+use sqlparser::ast::Value::{SingleQuotedString,Number};
 use std::fmt::Write;
 
 pub fn execute(stmt:&Statement) -> Result<String,ExecuteError>{
@@ -11,7 +11,8 @@ pub fn execute(stmt:&Statement) -> Result<String,ExecuteError>{
                         match item {
                             SelectItem::UnnamedExpr(Expr::Value(value)) => match value {
                                 SingleQuotedString(content) => write!(output,"{}",content).unwrap(),
-                                _ => todo!("not supported statement")
+                                Number(content,flag) => {println!("content: {:?} and flag: {:?}",content,flag); write!(output,"{}",content).unwrap()},
+                                _ => todo!("not supprted statement")
                             },
                             _ =>  todo!("not supported statement")
                         }
@@ -27,5 +28,5 @@ pub fn execute(stmt:&Statement) -> Result<String,ExecuteError>{
 #[derive(thiserror::Error,Debug)]
 pub enum ExecuteError{
     #[error("execution error {0}")]
-    ReadError(String)
+    UnsupportedStatmentError(#[from] anyhow::Error)
 }
