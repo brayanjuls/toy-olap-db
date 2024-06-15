@@ -11,3 +11,4 @@ rustyline = "14.0.0"
 sqllogictest = "0.20.4"
 sqlparser = "0.45.0"
 thiserror = "1.0.61"
+uuid = {version= "1.8.0", features = ["v4"]}

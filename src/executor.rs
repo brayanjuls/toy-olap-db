@@ -11,7 +11,7 @@ pub fn execute(stmt:&Statement) -> Result<String,ExecuteError>{
                         match item {
                             SelectItem::UnnamedExpr(Expr::Value(value)) => match value {
                                 SingleQuotedString(content) => write!(output,"{}",content).unwrap(),
-                                Number(content,flag) => {println!("content: {:?} and flag: {:?}",content,flag); write!(output,"{}",content).unwrap()},
+                                Number(content,_) => {write!(output,"{}",content).unwrap()},
                                 _ => todo!("not supprted statement")
                             },
                             _ =>  todo!("not supported statement")

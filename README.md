@@ -6,6 +6,6 @@ The goal of this project is to understand and implement the main components of a
 
 * Parser: We are mostly going to rely on sqlparser crate to do sql syntax validation and get the AST.
 * Executor
-* Catalog
+* Catalog: implement a catalog data structure covering database, schema, table and columns. It was glad to learn how concurrency plays a big role on the design and implementation of this structure.
 * Planner
 * In memory storage
