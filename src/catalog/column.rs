@@ -2,6 +2,7 @@ use uuid::Uuid;
 
 use crate::types::DataType;
 
+#[derive(Debug)]
 pub struct ColumnCatalog {
     id: ColumnId,
     name: String,
@@ -33,6 +34,17 @@ pub struct ColumnDesc{
     is_nullable:bool,
     is_primary:bool,
     datatype: DataType
+}
+
+impl ColumnDesc {
+    pub fn new(text:String,datatype:DataType) -> Self{
+        Self {
+            text,
+            datatype,
+            is_nullable:false,
+            is_primary:false
+        }
+    }
 }
 
 impl ColumnDesc {
