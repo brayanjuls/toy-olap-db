@@ -27,5 +27,5 @@ pub enum Error{
     Parse(#[from] ParserError),
 
     #[error("execute error: {0}")]
-    Execute(#[from] ExecuteError)
+    Execute(#[from] ExecuteError),
 }

@@ -1,4 +1,4 @@
-use uuid::Uuid;
+use sqlparser::ast::DataType as DataTypeKind;
 
 use crate::types::DataType;
 
@@ -13,19 +13,16 @@ impl ColumnCatalog {
     pub fn id(&self) -> ColumnId { self.id.clone()}
     pub fn name(&self) -> String { self.name.clone()}
     pub fn desc(&self) -> ColumnDesc { self.description.clone()}
-    pub fn new(name:String, description:ColumnDesc) -> Self {
+    pub fn new(id:ColumnId, name:String, datatype_kind:DataTypeKind) -> Self {
         Self { 
-            id: ColumnId{id: Uuid::new_v4().to_string()},
-            description,
-            name 
-    }
+            id,
+            description:ColumnDesc::new(name.clone(), false, false, datatype_kind),
+            name
+        }
     }
 }
 
-#[derive(Debug,PartialEq,Eq,Hash,Clone)]
-pub struct ColumnId{
-    id: String
-}
+pub type ColumnId = u32;
 
 
 #[derive(Debug,Clone)]
@@ -37,10 +34,10 @@ pub struct ColumnDesc{
 }
 
 impl ColumnDesc {
-    pub fn new(text:String,datatype:DataType) -> Self{
+    pub fn new(text:String,is_nullable:bool,is_primary:bool,datatype_kind:DataTypeKind) -> Self{
         Self {
             text,
-            datatype,
+            datatype: DataType::new(datatype_kind),
             is_nullable:false,
             is_primary:false
         }

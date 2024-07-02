@@ -1,8 +1,9 @@
-use std::{borrow::Borrow, collections::HashMap, sync::{Arc,Mutex}};
+use std::{collections::HashMap, sync::{Arc,Mutex}};
 
+use sqlparser::ast::DataType;
 use uuid::Uuid;
 
-use super::{column::ColumnDesc, table::{TableCatalog, TableId}};
+use super::table::{TableCatalog, TableId};
 
 pub struct SchemaCatalog{
     inner:Mutex<InnerSchema>
@@ -19,7 +20,7 @@ pub struct InnerSchema{
 impl SchemaCatalog {
     pub fn id(&self) -> SchemaId { self.inner.lock().unwrap().id.clone()}
     pub fn name(&self) -> String { self.inner.lock().unwrap().name.clone()}
-    pub fn add_table(&self, name: &str, columns: &[(String, ColumnDesc)]) -> TableId { 
+    pub fn add_table(&self, name: &str, columns: &[(String, DataType)]) -> TableId { 
         let table = Arc::new(TableCatalog::new(name.to_string(),columns));
         self.inner.lock().unwrap().table_catalog.insert(table.id(), Arc::clone(&table));
         table.id()

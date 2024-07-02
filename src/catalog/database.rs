@@ -19,7 +19,8 @@ impl DatabaseCatalog {
         schema.id()
     }
     pub fn get_schema(&self, id: SchemaId) -> Option<Arc<SchemaCatalog>> { 
-       self.inner.lock().unwrap().schema_catalog.get(&id).cloned()
+       let inner = self.inner.lock().unwrap();
+       inner.schema_catalog.get(&id).cloned()
     }
     pub fn del_schema(&self, id: SchemaId) { self.inner.lock().unwrap().schema_catalog.remove(&id);}
     pub fn new(&self) -> Self{
