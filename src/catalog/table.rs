@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::{Arc, Mutex}};
 use sqlparser::ast::DataType;
 use uuid::Uuid;
 
-use super::{column::{ColumnCatalog,ColumnId}, CatalogeError};
+use super::{column::{ColumnCatalog, ColumnDesc, ColumnId}, CatalogeError};
 
 pub struct TableCatalog{
     id: TableId,
@@ -37,10 +37,10 @@ impl TableCatalog {
         inner.columns_catalog.clone()
     }
 
-    pub fn add_column(&self, name:String,datatype:DataType) -> Result<ColumnId, CatalogeError> {
+    pub fn add_column(&self, name:String,desc:ColumnDesc) -> Result<ColumnId, CatalogeError> {
         let mut inner = self.inner.lock().unwrap();
         if !inner.columns_idxs.contains_key(&name){
-            let new_column = Arc::new(ColumnCatalog::new(inner.next_column_id, name.clone(), datatype));
+            let new_column = Arc::new(ColumnCatalog::new(inner.next_column_id, name.clone(), desc));
             let new_column_id = inner.next_column_id;
             inner.columns_catalog.insert(new_column_id, new_column);
             inner.next_column_id+=1;
@@ -52,14 +52,14 @@ impl TableCatalog {
     }
 
     
-    pub fn new(name:String, columns: &[(String, DataType)]) -> Self {
+    pub fn new(name:String, columns: &Vec<(String,ColumnDesc)>) -> Self {
         let mut col_id = 1;
         let mut new_columns = HashMap::<ColumnId,Arc<ColumnCatalog>>::new();
         let mut column_idxs = HashMap::<String,ColumnId>::new();
-        for (name,datatype) in columns{
-            let current_column = Arc::new(ColumnCatalog::new(col_id,name.to_owned(), datatype.to_owned()));
+        for (column_name,column_desc) in columns{
+            let current_column = Arc::new(ColumnCatalog::new(col_id,column_name.to_owned(), column_desc.to_owned()));
             new_columns.insert(col_id,current_column);
-            column_idxs.insert(name.to_owned(),col_id);
+            column_idxs.insert(column_name.to_owned(),col_id);
             col_id+=1;
         }
         Self { 
@@ -84,7 +84,7 @@ mod tests{
 
     use sqlparser::ast::DataType as DataTypeKind;
 
-    use crate::catalog::CatalogeError;
+    use crate::catalog::{column::ColumnDescBuilder, CatalogeError};
 
     use super::TableCatalog;
 
@@ -92,9 +92,9 @@ mod tests{
     #[test]
     fn  test_table_catalog_creation(){
 
-        let cols = &[
-            ("name".to_string(), DataTypeKind::Text),
-            ("value".to_string(), DataTypeKind::Float64),
+        let cols = &vec![
+            ("name".to_string(), ColumnDescBuilder::new().datatype(DataTypeKind::Text).build()),
+            ("value".to_string(), ColumnDescBuilder::new().datatype(DataTypeKind::Float64).build()),
         ];
         let table: TableCatalog = TableCatalog::new("example".to_string(), cols);
 
@@ -106,18 +106,17 @@ mod tests{
 
     #[test]
     fn test_empty_table_creation(){
-        let table = TableCatalog::new("products".to_string(), &[]);
-        let _ = table.add_column(String::from("id"), DataTypeKind::Int64);
-        let _ = table.add_column(String::from("cost"), DataTypeKind::Double);
+        let table = TableCatalog::new("products".to_string(), &Vec::new());
+        let _ = table.add_column(String::from("id"), ColumnDescBuilder::new().datatype(DataTypeKind::Int64).build());
+        let _ = table.add_column(String::from("cost"), ColumnDescBuilder::new().datatype(DataTypeKind::Double).build());
 
         assert_eq!(table.get_column(2).unwrap().name(), String::from("cost"))
     }
 
     #[test]
     fn test_duplicate_column_names(){
-        let table = TableCatalog::new(String::from("products"), &[
-            (String::from("id"),DataTypeKind::Int64)]);
-        let operation_result =  table.add_column("id".to_string(), DataTypeKind::Int64);
+        let table = TableCatalog::new(String::from("products"), &vec![(String::from("id"),ColumnDescBuilder::new().datatype(DataTypeKind::Int64).build())]);
+        let operation_result =  table.add_column("id".to_string(), ColumnDescBuilder::new().datatype(DataTypeKind::Int64).build());
         assert!(operation_result.is_err());
         assert_eq!(operation_result.unwrap_err(),CatalogeError::DuplicatedObject("duplicated column id".to_string()));
     }

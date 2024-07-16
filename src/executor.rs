@@ -1,28 +1,34 @@
-use sqlparser::ast::{Expr, SelectItem, SetExpr, Statement};
-use sqlparser::ast::Value::{SingleQuotedString,Number};
 use std::fmt::Write;
+use std::sync::Arc;
 
-pub fn execute(stmt:&Statement) -> Result<String,ExecuteError>{
+use crate::binder::statement::BoundStatement;
+use crate::catalog::database::DatabaseCatalog;
+pub struct Executor{
+    catalog: Arc<DatabaseCatalog>
+}
+
+
+impl Executor {
+    pub fn new(catalog: Arc<DatabaseCatalog>) -> Executor{
+        Executor { catalog: catalog }
+    }
+    pub fn execute(&self,stmt:&BoundStatement) -> Result<String,ExecuteError>{
+        let mut output = String::new();
         match stmt {
-            Statement::Query(query) => match &query.body.as_ref() {
-                SetExpr::Select(select) => {
-                    let mut output = String::new();
-                    for item in &select.projection{
-                        match item {
-                            SelectItem::UnnamedExpr(Expr::Value(value)) => match value {
-                                SingleQuotedString(content) => write!(output,"{}",content).unwrap(),
-                                Number(content,_) => {write!(output,"{}",content).unwrap()},
-                                _ => todo!("not supprted statement")
-                            },
-                            _ =>  todo!("not supported statement")
-                        }
-                    }
-                    Ok(output.to_owned())
-                },
-                _ =>  todo!("not supported statement")
-            }
-            _ => todo!("not supported statement")
-        }
+            BoundStatement::Select(select) => {
+                for value in &select.values{
+                    write!(output,"{}",value).unwrap()
+                }
+            },
+            BoundStatement::CreateTable(table) => {
+                let current_schema = self.catalog.get_current_schema();
+                let _ = current_schema.unwrap().add_table(table.table_name.as_str(), &table.columns);
+                write!(output,"table {} created.",table.table_name.as_str()).unwrap()
+            },
+            _ => todo!("Unsupported statement")
+        } 
+        Ok(output.to_owned())               
+    }
 }
 
 #[derive(thiserror::Error,Debug)]

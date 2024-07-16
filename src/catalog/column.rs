@@ -13,10 +13,10 @@ impl ColumnCatalog {
     pub fn id(&self) -> ColumnId { self.id.clone()}
     pub fn name(&self) -> String { self.name.clone()}
     pub fn desc(&self) -> ColumnDesc { self.description.clone()}
-    pub fn new(id:ColumnId, name:String, datatype_kind:DataTypeKind) -> Self {
+    pub fn new(id:ColumnId, name:String, description:ColumnDesc) -> Self {
         Self { 
             id,
-            description:ColumnDesc::new(name.clone(), false, false, datatype_kind),
+            description,
             name
         }
     }
@@ -25,7 +25,7 @@ impl ColumnCatalog {
 pub type ColumnId = u32;
 
 
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,PartialEq)]
 pub struct ColumnDesc{
     text:String,
     is_nullable:bool,
@@ -33,13 +33,49 @@ pub struct ColumnDesc{
     datatype: DataType
 }
 
-impl ColumnDesc {
-    pub fn new(text:String,is_nullable:bool,is_primary:bool,datatype_kind:DataTypeKind) -> Self{
-        Self {
-            text,
-            datatype: DataType::new(datatype_kind),
-            is_nullable:false,
-            is_primary:false
+pub struct ColumnDescBuilder{
+    text:String,
+    is_nullable:bool,
+    is_primary:bool,
+    datatype: DataType
+}
+
+impl ColumnDescBuilder {
+
+    pub fn new() -> Self{
+        Self { 
+            text: Default::default(), 
+            is_nullable: Default::default(), 
+            is_primary: Default::default(), 
+            datatype:DataType::new(DataTypeKind::Int64) 
+        }
+    }
+    pub fn text(mut self, text:String) -> Self{
+        self.text = text;
+        self
+    }
+
+    pub fn is_nullable(mut self, is_nullable:bool) -> Self{
+        self.is_nullable = is_nullable;
+        self
+    }
+
+    pub fn is_primary(mut self, is_primary:bool) -> Self{
+        self.is_primary = is_primary;
+        self
+    }
+
+    pub fn datatype(mut self, datatype:DataTypeKind) -> Self{
+        self.datatype = DataType::new(datatype);
+        self
+    }
+
+    pub fn build(self) -> ColumnDesc {
+        ColumnDesc{
+            text:self.text,
+            datatype:self.datatype,
+            is_nullable:self.is_nullable,
+            is_primary:self.is_primary
         }
     }
 }
